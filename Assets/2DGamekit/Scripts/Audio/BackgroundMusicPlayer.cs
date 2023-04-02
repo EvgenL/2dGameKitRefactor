@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using UnityEngine;
@@ -42,36 +43,26 @@ namespace Gamekit2D
         protected bool m_TransferMusicTime, m_TransferAmbientTime;
         protected BackgroundMusicPlayer m_OldInstanceToDestroy = null;
 
-        //every clip pushed on that stack throught "PushClip" function will play until completed, then pop
-        //once that stack is empty, it revert to the musicAudioClip
+        /// <summary>
+        /// every clip pushed on that stack throught "PushClip" function will play until completed, then pop
+        /// once that stack is empty, it revert to the musicAudioClip
+        /// </summary>
         protected Stack<AudioClip> m_MusicStack = new Stack<AudioClip>();
 
         void Awake ()
         {
-            // todo 5 comments
-            // If there's already a player...
-            if (Instance != null && Instance != this)
+            var playerAlreadyCreated = Instance != null && Instance != this;
+            if (playerAlreadyCreated)
             {
-                //...if it use the same music clip, we set the audio source to be at the same position, so music don't restart
-                if(Instance.musicAudioClip == musicAudioClip)
-                {
-                    m_TransferMusicTime = true;
-                }
-
-                //...if it use the same ambient clip, we set the audio source to be at the same position, so ambient don't restart
-                if (Instance.ambientAudioClip == ambientAudioClip)
-                {
-                    m_TransferAmbientTime = true;
-                }
-
-                // ... destroy the pre-existing player.
-                m_OldInstanceToDestroy = Instance;
+                TryPlaySameAudio();
+                TryPlayAmbientAudio();
+                DestroyThePreExistingPlayer();
             }
         
             s_Instance = this;
 
-            DontDestroyOnLoad (gameObject);
-
+            DontDestroyOnLoad(gameObject);
+            
             m_MusicAudioSource = gameObject.AddComponent<AudioSource> ();
             m_MusicAudioSource.clip = musicAudioClip;
             m_MusicAudioSource.outputAudioMixerGroup = musicOutput;
@@ -94,6 +85,27 @@ namespace Gamekit2D
             {
                 m_AmbientAudioSource.time = 0f;
                 m_AmbientAudioSource.Play();
+            }
+        }
+
+        private void DestroyThePreExistingPlayer()
+        {
+            m_OldInstanceToDestroy = Instance;
+        }
+
+        private void TryPlayAmbientAudio()
+        {
+            if (Instance.ambientAudioClip == ambientAudioClip)
+            {
+                m_TransferAmbientTime = true;
+            }
+        }
+
+        private void TryPlaySameAudio()
+        {
+            if (Instance.musicAudioClip == musicAudioClip)
+            {
+                m_TransferMusicTime = true;
             }
         }
 

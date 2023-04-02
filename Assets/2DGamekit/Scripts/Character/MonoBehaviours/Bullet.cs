@@ -40,22 +40,32 @@ namespace Gamekit2D
         {
             if (destroyWhenOutOfView)
             {
-                Vector3 screenPoint = mainCamera.WorldToViewportPoint(transform.position);
-                bool onScreen = screenPoint.z > 0 && screenPoint.x > -k_OffScreenError &&
-                                screenPoint.x < 1 + k_OffScreenError && screenPoint.y > -k_OffScreenError &&
-                                screenPoint.y < 1 + k_OffScreenError;
-                if (!onScreen)
-                    bulletPoolObject.ReturnToPool();
+                DestroyWhenOutOfView();
             }
 
             if (timeBeforeAutodestruct > 0)
             {
-                m_Timer += Time.deltaTime;
-                if (m_Timer > timeBeforeAutodestruct)
-                {
-                    bulletPoolObject.ReturnToPool();
-                }
+                Autodestruct();
             }
+        }
+
+        private void Autodestruct()
+        {
+            m_Timer += Time.deltaTime;
+            if (m_Timer > timeBeforeAutodestruct)
+            {
+                bulletPoolObject.ReturnToPool();
+            }
+        }
+
+        private void DestroyWhenOutOfView()
+        {
+            Vector3 screenPoint = mainCamera.WorldToViewportPoint(transform.position);
+            bool onScreen = screenPoint.z > 0 && screenPoint.x > -k_OffScreenError &&
+                            screenPoint.x < 1 + k_OffScreenError && screenPoint.y > -k_OffScreenError &&
+                            screenPoint.y < 1 + k_OffScreenError;
+            if (!onScreen)
+                bulletPoolObject.ReturnToPool();
         }
 
         public void OnHitDamageable(Damager origin, Damageable damageable)
